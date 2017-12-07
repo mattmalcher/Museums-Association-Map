@@ -4,10 +4,9 @@ import ssl
 import urllib.request
 import json
 import re
-import time
+
 
 def latlon_from_postcode(postcode):
-    # time.sleep(1)
     # Remove Spaces
     postcode=postcode.replace(' ', '')
 
@@ -37,6 +36,7 @@ ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
+# TODO - Update to handle multiple URL's
 # Specify Members Free Entry Page url's
 urls = ("https://www.museumsassociation.org/members-free-entry",
         "https://www.museumsassociation.org/members-free-entry/london",
@@ -96,3 +96,6 @@ for loc in locations:
     print(loc)
 
 print('')
+
+# TODO - Write list out to a csv for QGIS
+
