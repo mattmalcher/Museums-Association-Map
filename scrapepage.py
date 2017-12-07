@@ -4,22 +4,32 @@ import ssl
 import urllib.request
 import json
 import re
-
+import time
 
 def latlon_from_postcode(postcode):
-
+    # time.sleep(1)
     # Remove Spaces
     postcode=postcode.replace(' ', '')
 
-    # Build URL
-    res = urllib.request.urlopen("http://api.postcodes.io/postcodes/"+postcode).read()
 
-    # Get JSON
-    data = json.loads(res)
+    # Build URL & request
+    url="http://api.postcodes.io/postcodes/"+postcode
+    print(url)
 
-    return data["result"]["longitude"], data["result"]["latitude"]
+    try:
+        res = urllib.request.urlopen(url).read()
+        # Get JSON
+        data = json.loads(res)
+        long = data["result"]["longitude"]
+        lat = data["result"]["latitude"]
 
-[lat, long] = latlon_from_postcode('GU22 8RL')
+    except urllib.error.HTTPError:
+
+        print('HTTP Error')
+        long = ''
+        lat = ''
+
+    return long, lat
 
 
 # Ignore SSL certificate errors
@@ -53,16 +63,26 @@ for child in main_col.children:
             addresses = child.next_sibling.next_sibling.text.strip().split('\n\n')
             address = addresses[0]
 
-            # regex to find postcodes
-            postcodes = re.findall(r'\b[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][ABD-HJLNP-UW-Z]{2}\b', address)
-            print(postcodes[0])
+            # regex to find postcodes - note "   *" to allow matching of an arbitrary number of spaces in middle
+            postcodes = re.findall(r'\b[A-Z]{1,2}[0-9][A-Z0-9]? *[0-9][ABD-HJLNP-UW-Z]{2}\b', address)
+
+
+
+            [long, lat] = latlon_from_postcode(postcodes[0])
+
+
 
             try:
                 web = addresses[1]
-                locations.append({'name': name, 'address': address, 'web': web})
+                locations.append({'name': name, 'address': address,
+                                  'postcode':postcodes[0],
+                                  'lat':lat, 'long':long,
+                                  'web': web})
 
             except IndexError:
-                locations.append({'name': name, 'address': address})
+                locations.append({'name': name, 'address': address,
+                                  'postcode':postcodes[0],
+                                  'lat':lat, 'long':long})
 
 
     except TypeError:
